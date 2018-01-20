@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <canvas id="canvas_2"></canvas>
+  <script type="text/javascript">
+    let canvas = document.querySelector('#canvas')
+    let ctx = canvas.getContext('2d')
+    let gridY = 7,
+      gridX = 7;
+    let colors = ["#feea00", "#a9df85", "#5dc0ad", "#ff9a00", "#fa3f20"]
+
+    canvas.width = 400
+    canvas.height = 400
+
+    let words = "A";
+
+    function render(x, y)
+    {
+      ctx.textAlign = "center";
+      ctx.font = "400px arial";
+      ctx.fillText(words, x, y);
+    }
+    render(200, 350);
+
+    var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var buffer32 = new Uint32Array(idata.data.buffer);
+
+    var canvas_new = document.querySelector('#canvas_2')
+    var context = canvas_new.getContext('2d')
+    canvas_new.width = canvas.width
+    canvas_new.height = canvas.height
+
+    for (var j = 0; j < canvas.height; j += gridY)
+    {
+      for (var i = 0; i < canvas.width; i += gridX)
+      {
+        if (buffer32[j * canvas.width + i])
+        {
+          var particle = drawArc(i, j);
+        }
+      }
+    }
+
+    function getRandom(min, max)
+    {
+      return Math.floor((Math.random() * (max - min + 1) + min))
+    }
+
+
+    function drawArc(x, y)
+    {
+      context.beginPath();
+      context.arc(x, y, 2, 0, 2 * Math.PI);
+      context.fillStyle = colors[getRandom(0, colors.length - 1)];
+      context.fill();
+      context.closePath();
+    }
+    document.querySelectorAll('body')[0].appendChild(canvas_new)
+  </script>
+</body>
+
+</html>
