@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script type="text/javascript">
+    var canvas = document.querySelector("#canvas"),
+      ctx = canvas.getContext('2d'),
+      winW = document.documentElement.clientWidth,
+      winH = document.documentElement.clientHeight,
+      particleArr = [],
+      particleTotalNum = 200
+
+    canvas.width = winW
+    canvas.height = winH
+
+    let colors = ["#feea00", "#a9df85", "#5dc0ad", "#ff9a00", "#fa3f20"]
+    let arcType = ['fill', 'full', 'empty'];
+
+    // 创建粒子
+    function Particle()
+    {
+      this.x = this.randomBetween(0, winW)
+      this.y = this.randomBetween(0, winH)
+      this.radius = 1 + (8 * this.random())
+      this.color = this.getColor()
+      this.s = (this.radius + (Math.random() * 1)) / 2;
+      this.xa = Math.random() * 4 - 1;
+      this.ya = Math.random() * 4 - 1;
+      this.lineWidth = 0.2 + (2.8 * this.random())
+      this.type = arcType[this.randomBetween(0, arcType.length - 1)]
+      this.max = 6000
+    }
+
+    Particle.prototype.init = function()
+    {
+
+      this.createArc()
+    }
+
+    Particle.prototype.random = function()
+    {
+      return Math.random()
+    }
+
+    // 两数之间的随机数
+    Particle.prototype.randomBetween = (min, max) =>
+    {
+      return Math.floor(Math.random() * (max - min + 1) + min)
+    }
+
+    // 随机拿出颜色
+    Particle.prototype.getColor = function()
+    {
+      return colors[this.randomBetween(0, colors.length - 1)]
+    }
+
+    Particle.prototype.createArc = function()
+    {
+      switch (this.type)
+      {
+        case 'fill':
+          this.drawFill();
+          break;
+        case 'empty':
+          this.drawEmpty(this.radius, this.lineWidth);
+          break;
+        case 'full':
+          this.drawFill()
+          this.drawEmpty(this.radius + this.lineWidth, this.lineWidth / 2);
+          break
+      }
+    }
+    Particle.prototype.drawFill = function()
+    {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.closePath();
+    }
+    Particle.prototype.drawEmpty = function(radius, lineWidth)
+    {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, radius, 0, 2 * Math.PI);
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = this.color;
+      ctx.stroke();
+      ctx.closePath();
+    }
+    Particle.prototype.move = function()
+    {
+      this.x += this.xa
+      this.y += this.ya
+
+      // 遇到边界将加速度反向
+      this.xa *= (this.x > canvas.width || this.x < 0) ? -1 : 1;
+      this.ya *= (this.y > canvas.height || this.y < 0) ? -1 : 1;
+      this.connection()
+      // this.a += Math.random() * 0.4 - 0.2;
+      this.createArc(this.type)
+      return true
+    }
+
+    Particle.prototype.connection = function()
+    {
+      // 循环比对粒子间的距离
+      for (var i = 0; i < particleArr.length; i++)
+      {
+        var d2 = particleArr[i];
+        if (this.x === d2.x || this.y === d2.y || d2.x === null || d2.y === null) continue;
+        var xc = this.x - d2.x;
+        var yc = this.y - d2.y;
+        // 两个粒子之间的距离
+        var dis = xc * xc + yc * yc;
+        // 距离比
+        var ratio;
+        // 如果两个粒子之间的距离小于粒子对象的max值，则在两个粒子间画线
+        if (dis < d2.max)
+        {
+          // 计算距离比
+          ratio = (d2.max - dis) / d2.max;
+          // 画线
+          ctx.beginPath();
+          ctx.lineWidth = ratio / 2;
+          ctx.strokeStyle = 'rgba(255,255,255,' + (ratio + 0.2) + ')';
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(d2.x, d2.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function init()
+    {
+      for (var i = 0; i < particleTotalNum; i++)
+      {
+        particleArr[i] = new Particle();
+        particleArr[i].init();
+      }
+      animate();
+    }
+
+    function animate()
+    {
+      ctx.clearRect(0, 0, winW, winH);
+      for (var i in particleArr)
+      {
+        particleArr[i].move();
+      }
+      requestAnimationFrame(animate)
+    }
+    init()
+  </script>
+</body>
+
+</html>

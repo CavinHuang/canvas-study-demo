@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>跟随鼠标移动的</title>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script type="text/javascript">
+    var canvas = document.querySelector("#canvas"),
+      ctx = canvas.getContext('2d'),
+      WINH = canvas.width = window.innerWidth,
+      WINW = canvas.height = window.innerHeight,
+      option = {
+        num: 140,
+        color: false, // false 标识随机颜色
+        r: 0.9,
+        o: 0.09,
+        a: 1
+      },
+      color,
+      color2,
+      round_arr = [];
+
+    window.onmousemove = function(event)
+    {
+
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+
+      round_arr.push(
+      {
+        mouseX: mouseX,
+        mouseY: mouseY,
+        r: option.r, // 设置半径每次增大的数值
+        o: 1, //  判断圆消失的条件，数值越大，消失的越快
+      })
+    };
+
+    if (option.color)
+    {
+      color2 = option.color;
+    }
+    else
+    {
+      color = Math.random() * 360;
+    }
+
+    function animate()
+    {
+
+      if (!option.color)
+      {
+        color += .1;
+        color2 = 'hsl(' + color + ',100%,80%)';
+      }
+
+      ctx.clearRect(0, 0, WINH, WINW);
+
+      for (var i = 0; i < round_arr.length; i++)
+      {
+
+        ctx.fillStyle = color2;
+        ctx.beginPath();
+        ctx.arc(round_arr[i].mouseX, round_arr[i].mouseY, round_arr[i].r, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        round_arr[i].r += option.r;
+        round_arr[i].o -= option.o;
+
+        if (round_arr[i].o <= 0)
+        {
+          round_arr.splice(i, 1);
+          i--;
+        }
+      }
+
+      window.requestAnimationFrame(animate);
+    };
+    // 启动
+    animate()
+  </script>
+</body>
+
+</html>
