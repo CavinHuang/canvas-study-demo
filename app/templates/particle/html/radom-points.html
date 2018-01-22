@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>canvas-随机散落的点</title>
+  <style>
+    body {
+      background: #000 !important;
+      cursor: auto !important;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script type="text/javascript">
+    let canvas = document.querySelector('#canvas')
+    let ctx = canvas.getContext('2d')
+
+    let WIN_W = window.innerWidth
+    let WIN_H = window.innerHeight
+
+    let radiusArr = [5, 10]
+    let pointsTotalNum = 50
+    let pointsArr = []
+    let pointColors = ["#feea00", "#a9df85", "#5dc0ad", "#ff9a00", "#fa3f20"]
+    let during = 100
+
+    canvas.width = WIN_W
+    canvas.height = WIN_H
+
+    function random(min, max)
+    {
+      return Math.floor(Math.random() * (max - min + 1) + min)
+    }
+
+    let mouse = {
+      x: WIN_W / 2,
+      y: WIN_H / 2
+    };
+
+    // Event Listeners
+    addEventListener("mousemove", event =>
+    {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+      linePoint(mouse.x, mouse.y);
+    });
+
+    function linePoint(x, y)
+    {
+      for (var i = 0; i < pointsTotalNum; i++)
+      {
+        if ((pointsArr[i].x - x <= 150 && x - pointsArr[i].x <= 150) && (pointsArr[i].y - y <= 150 && y - pointsArr[i].y <= 150))
+        {
+          ctx.beginPath();
+          ctx.lineWidth = '1px';
+          ctx.strokeStyle = 'rgba(255,255,255,' + (random(0, 1)) + ')';
+          ctx.moveTo(pointsArr[i].x, pointsArr[i].y);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    class Particle
+    {
+      constructor()
+      {
+        this.radius = random.apply(null, radiusArr)
+        this.maxRadius = this.radius + 3
+        this.minRadius = this.radius
+        this.x = random(0, WIN_W - this.radius * 2)
+        this.y = random(0, WIN_H - this.radius * 2)
+        this.color = pointColors[random(0, pointColors.length - 1)]
+        this.minAlpha = random(0, 0.5)
+        this.maxAlpha = 1
+        this.alpha = 1
+        this.distrance = 1 // 1 up 0 down
+        this.maxDistanse = 50
+      }
+
+      render(radius, alpha, blur)
+      {
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, radius, 0, 2 * Math.PI)
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = this.color
+        ctx.shadowBlur = blur;
+        ctx.shadowColor = this.color;
+        ctx.fill()
+        ctx.closePath()
+      }
+
+      animate(ticker)
+      {
+        var blur = 50
+        let alpha = this.maxAlpha - this.minAlpha
+        let radius = this.maxRadius - this.minRadius
+        let alpha_r = alpha / radius
+
+        if (this.distrance)
+        {
+          this.radius++;
+          this.alpha = this.alpha - alpha_r
+        }
+        else
+        {
+          this.radius--;
+          this.alpha = this.alpha + alpha_r
+        }
+
+        if (this.radius <= this.minRadius) this.distrance = 1
+        if (this.radius >= this.maxRadius) this.distrance = 0
+
+        let r = this.radius
+        if ((this.x - mouse.x <= 20 && mouse.x - this.x <= 20) && (this.y - mouse.y <= 20 && mouse.y - this.y <= 20))
+        {
+          r = r * 2
+        }
+
+        this.render(r, this.alpha, blur);
+      }
+    }
+    let startTime = new Date().getTime(),
+      endtime = 0
+    let ticker = 0;
+
+    function animate()
+    {
+      ctx.clearRect(0, 0, WIN_W, WIN_H);
+      for (var i in pointsArr)
+      {
+        pointsArr[i].animate(ticker);
+        linePoint(pointsArr[i].x, pointsArr[i].y);
+      }
+      ticker += 0.02;
+
+      setTimeout(animate, 60)
+    }
+
+    function createPoints()
+    {
+      for (var i = 0; i < pointsTotalNum; i++)
+      {
+        pointsArr[i] = new Particle()
+        pointsArr[i].render(pointsArr[i].radius, pointsArr[i].alpha, 50)
+      }
+      animate()
+    }
+    createPoints()
+  </script>
+</body>
+
+</html>
